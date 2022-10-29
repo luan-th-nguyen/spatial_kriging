@@ -1,6 +1,7 @@
 name: streamlit
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - scipy
   - scikit-gstat
