@@ -1,0 +1,10 @@
+name: streamlit
+channels:
+  - defaults
+dependencies:
+  - scipy
+  - scikit-gstat
+  - pandas
+  - seaborn
+  - plotly
+  - matplotlib
