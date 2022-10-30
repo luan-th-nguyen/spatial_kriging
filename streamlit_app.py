@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from scipy.interpolate import griddata
+from scipy import interpolate as _interp #import griddata
 import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -33,9 +33,15 @@ def main_spatial_krigging():
         fig = go.Figure(data = [trace], layout = layout)
         col2.plotly_chart(fig, use_container_width=False, sharing='streamlit')
 
+        st.header('Settings for Variogram')
+        col1, col2, col3 = st.columns(3)
+        range_variogram = col1.number_input('Range', value=7.0, step=1.0)
+        sill_variogram = col2.number_input('Sill', value=3.0, step=1.0)
+        nugget_variogram = col3.number_input('Nugget', value=0.0, step=1.0)
+
         # calculate
         st.header('Kriging data preparation')
-        my_kriging = SpatialKriging(data)
+        my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
         col1, col2 = st.columns([7, 3])
         col1.markdown('Semivariance matrix from known data')
         col1.write(my_kriging.variance_dist_matrix)
@@ -99,7 +105,7 @@ def main_spatial_krigging():
         #st.write(X.shape)
         #st.write(Y.shape)
 
-        Z = griddata(xy_points, z_values, XY_points, method='nearest')
+        Z = _interp.griddata(xy_points, z_values, XY_points, method='nearest')
         layout = go.Layout(title = 'Estimated Elevation (grey points: known points, surface: estimated elevation surface)')
         trace_known = go.Scatter3d(
            x = data['X'], y = data['Y'], z = data['Z'], mode='markers', marker = dict(

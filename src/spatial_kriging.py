@@ -6,11 +6,14 @@ from scipy.linalg import solve
 class SpatialKriging():
     """ A simple spatial kriging class
     """
-    def __init__(self, data):
+    def __init__(self, data, range=7.0, sill=2.0, nugget=0.0):
         self.data = data
+        self.range = range
+        self.sill = sill
+        self.nugget = nugget
         self.dist_matrix = self.get_distance_matrix()                               # gets distance matrix only once at initialization to save computing
         self.variance_dist_matrix = self.get_semivariances(self.dist_matrix)        # gets variance distance matrix only once at initialization to save computing
-        self.extend_variance_matrix()
+        self.extend_variance_matrix()                                               # evaluate on initialization ...
 
 
     def get_distance_matrix(self):
@@ -36,7 +39,7 @@ class SpatialKriging():
         """
         n = dist_matrix.shape[0]
         # range= 7. sill = 2. nugget = 0.
-        variances = spherical(dist_matrix.flatten(), 7.0, 2.0, 0.0)
+        variances = spherical(dist_matrix.flatten(), self.range, self.sill, self.nugget)
         if dist_matrix.size > len(dist_matrix):   # 2D numpy array
             return variances.reshape(n, n)
         else:
@@ -52,7 +55,7 @@ class SpatialKriging():
         self.variance_dist_matrix = np.hstack((self.variance_dist_matrix, unity_column_vector))
 
     
-    def estimate_with_ordinary_kriging(self, p0):
+    def estimate_with_ordinary_kriging(self, p0, range=7.0, sill=2.0, nugget=0.0):
         """ Estimates with ordinary krigging for point p0"""
         #dist_matrix = self.get_distance_matrix()
         dist_vector = self.get_distance_vector(p0)
