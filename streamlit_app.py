@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from scipy import interpolate as _interp #import griddata
+#from scipy import interpolate as _interp #import griddata
+import scipy
 import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -35,20 +36,29 @@ def main_spatial_krigging():
 
         st.header('Settings for Variogram')
         col1, col2, col3 = st.columns(3)
-        range_variogram = col1.number_input('Range', value=7.0, step=1.0)
+        range_variogram = col1.number_input('Range', value=12.0, step=1.0)
         sill_variogram = col2.number_input('Sill', value=3.0, step=1.0)
-        nugget_variogram = col3.number_input('Nugget', value=0.0, step=1.0)
+        nugget_variogram = col3.number_input('Nugget', value=1.0, step=1.0)
 
         # calculate
         st.header('Kriging data preparation')
         my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
-        col1, col2 = st.columns([7, 3])
-        col1.markdown('Semivariance matrix from known data')
-        col1.write(my_kriging.variance_dist_matrix)
+        h_variogram = my_kriging.dist_matrix[:,1]
+        gamma_variogram = my_kriging.variance_dist_matrix[:-1,1]
+        fig, ax = plt.subplots()
+        ax.scatter(h_variogram, gamma_variogram)
+        ax.set_xlabel('h')
+        ax.set_ylabel('$\gamma(h)$')
+        col1, col2, col3 = st.columns([3, 4, 3])
+        col1.markdown('Variogram')
+        col1.write(fig)
+
+        col2.markdown('Semivariance matrix from known data')
+        col2.write(my_kriging.variance_dist_matrix)
         fig, ax = plt.subplots()
         sns.heatmap(my_kriging.variance_dist_matrix, ax=ax)
-        col2.markdown('Heatmap plot of the semivariance matrix')
-        col2.write(fig)
+        col3.markdown('Heatmap plot of the semivariance matrix')
+        col3.write(fig)
 
     st.header('Unknown data import')
     uploaded_file_unknown = st.file_uploader("Choose a CSV file of unknown data points (to be estimated by Kriging)")
@@ -91,8 +101,6 @@ def main_spatial_krigging():
         y_min, y_max = np.min(data['Y']), np.max(data['Y'])
         x_points_grid = np.linspace(x_min, x_max, 50)
         y_points_grid = np.linspace(y_min, y_max, 50)
-        #print(x_points_grid)
-        #print(y_points_grid)
         points_grid = [[xi, yi] for xi, yi in zip(x_points_grid, y_points_grid)]
         z_points_grid = [my_kriging.estimate_with_ordinary_kriging(point) for point in points_grid]
 
@@ -100,12 +108,8 @@ def main_spatial_krigging():
         xy_points = np.array((x_points_grid, y_points_grid)).transpose()
         z_values = np.array((z_points_grid))
         XY_points = (X, Y) # points at which to interpolate data
-        #st.write(xy_points.shape)
-        #st.write(z_values.shape)
-        #st.write(X.shape)
-        #st.write(Y.shape)
 
-        Z = _interp.griddata(xy_points, z_values, XY_points, method='nearest')
+        Z = scipy.interpolate.griddata(xy_points, z_values, XY_points, method='nearest')
         layout = go.Layout(title = 'Estimated Elevation (grey points: known points, surface: estimated elevation surface)')
         trace_known = go.Scatter3d(
            x = data['X'], y = data['Y'], z = data['Z'], mode='markers', marker = dict(
