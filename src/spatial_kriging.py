@@ -38,7 +38,6 @@ class SpatialKriging():
         """ Gets variances
         """
         n = dist_matrix.shape[0]
-        # range= 7. sill = 2. nugget = 0.
         variances = spherical(dist_matrix.flatten(), self.range, self.sill, self.nugget)
         if dist_matrix.size > len(dist_matrix):   # 2D numpy array
             return variances.reshape(n, n)
@@ -55,7 +54,7 @@ class SpatialKriging():
         self.variance_dist_matrix = np.hstack((self.variance_dist_matrix, unity_column_vector))
 
     
-    def estimate_with_ordinary_kriging(self, p0, range=7.0, sill=2.0, nugget=0.0):
+    def estimate_with_ordinary_kriging(self, p0):
         """ Estimates with ordinary krigging for point p0"""
         #dist_matrix = self.get_distance_matrix()
         dist_vector = self.get_distance_vector(p0)
@@ -70,4 +69,4 @@ class SpatialKriging():
         # estimate
         z_est = self.data.iloc[:,2].dot(weights[:-1])
         
-        return z_est
+        return z_est, weights, variance_dist_vector
