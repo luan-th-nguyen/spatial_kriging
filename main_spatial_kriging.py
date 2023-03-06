@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from src.spatial_kriging import SpatialKriging
 
 def main_spatial_kriging(st):
-    @st.cache
+    @st.cache_data
     def convert_df(df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
         return df.to_csv().encode('utf-8')
@@ -99,18 +99,19 @@ def main_spatial_kriging(st):
         st.header('Generate dense data points within range of known data, perform kriging on each of the points and plot results')
         x_min, x_max = np.min(data['X']), np.max(data['X'])
         y_min, y_max = np.min(data['Y']), np.max(data['Y'])
-        x_points_grid = np.linspace(x_min, x_max, 50)
-        y_points_grid = np.linspace(y_min, y_max, 50)
-        points_grid = [[xi, yi] for xi, yi in zip(x_points_grid, y_points_grid)]
-        z_points_grid = [my_kriging.estimate_with_ordinary_kriging(point)[0] for point in points_grid]
+        x_points_grid = np.linspace(x_min, x_max, 30)
+        y_points_grid = np.linspace(y_min, y_max, 30)
 
-        X, Y = np.meshgrid(x_points_grid, y_points_grid)
-        xy_points = np.array((x_points_grid, y_points_grid)).transpose()
-        z_values = np.array((z_points_grid))
-        XY_points = (X, Y) # points at which to interpolate data
+        xx, yy = np.meshgrid(x_points_grid, y_points_grid)
+        zz = np.zeros_like(xx)
+        for i in range(zz.shape[0]):
+          for j in range(zz.shape[1]):
+            zz[i,j] = my_kriging.estimate_with_ordinary_kriging((xx[i,j], yy[i,j]))[0]
 
-        Z = scipy.interpolate.griddata(xy_points, z_values, XY_points, method='nearest')
-        layout = go.Layout(title = 'Estimated Elevation (grey points: known points, surface: estimated elevation surface)')
+        layout = go.Layout(title = 'Estimated Elevation (grey points: known points, surface: estimated elevation surface)',
+                           autosize=False,
+                           width=800,
+                           height=800)
         trace_known = go.Scatter3d(
            x = data['X'], y = data['Y'], z = data['Z'], mode='markers', marker = dict(
               size = 5.0,
@@ -118,8 +119,11 @@ def main_spatial_kriging(st):
               #colorscale = 'Viridis'
               )
            )
-        fig1 = go.Figure(data=[trace_known, go.Surface(x=x_points_grid, y=y_points_grid, z=Z)], layout=layout)
+
+        fig1 = go.Figure(data=[trace_known, go.Surface(x=xx, y=yy, z=zz, colorscale = 'Viridis')], layout=layout)
         st.plotly_chart(fig1, use_container_width=False, sharing='streamlit')
+        fig2 = go.Figure(data=go.Contour(x=x_points_grid, y=y_points_grid, z=zz, colorscale = 'Viridis'), layout=layout)
+        st.plotly_chart(fig2, use_container_width=False, sharing='streamlit')
 
         # download results
         st.download_button(
