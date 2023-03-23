@@ -44,7 +44,7 @@ def main_spatial_kriging(st):
         st.header('Kriging data preparation')
         my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
         h_variogram = my_kriging.dist_matrix[:,1]
-        gamma_variogram = my_kriging.variance_dist_matrix[:-1,1]
+        gamma_variogram = my_kriging.variogram_matrix[:-1,1]
         fig, ax = plt.subplots()
         ax.scatter(h_variogram, gamma_variogram)
         ax.set_xlabel('h')
@@ -54,9 +54,9 @@ def main_spatial_kriging(st):
         col1.write(fig)
 
         col2.markdown('Semivariance matrix from known data')
-        col2.write(my_kriging.variance_dist_matrix)
+        col2.write(my_kriging.variogram_matrix)
         fig, ax = plt.subplots()
-        sns.heatmap(my_kriging.variance_dist_matrix, ax=ax)
+        sns.heatmap(my_kriging.variogram_matrix, ax=ax)
         col3.markdown('Heatmap plot of the semivariance matrix')
         col3.write(fig)
 
@@ -73,7 +73,9 @@ def main_spatial_kriging(st):
         #p0 = [5, 5]
         points_unknown = [[xi, yi] for xi, yi in zip(data_unknown['X'], data_unknown['Y'])]
         z_est = [my_kriging.estimate_with_ordinary_kriging(point)[0] for point in points_unknown]
+        var_est = [my_kriging.estimate_with_ordinary_kriging(point)[1] for point in points_unknown]
         data_unknown['Z'] = np.array(z_est)
+        data_unknown['Var'] = np.array(var_est)
         col1.write(data_unknown)
 
         # visualize data
