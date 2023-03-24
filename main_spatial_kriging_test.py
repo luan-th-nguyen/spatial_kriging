@@ -47,8 +47,8 @@ def main_spatial_kriging_test(st):
    # calculate
    st.header('Kriging data preparation')
    my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
-   h_variogram = my_kriging.dist_matrix[:,1]
-   gamma_variogram = my_kriging.variogram_matrix[:-1,1]
+   h_variogram = my_kriging.dist_matrix[:,:].flatten()
+   gamma_variogram = my_kriging.variogram_matrix[:-1,:-1].flatten()
    fig, ax = plt.subplots()
    ax.scatter(h_variogram, gamma_variogram)
    ax.set_xlabel('h')

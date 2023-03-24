@@ -34,17 +34,21 @@ def main_spatial_kriging(st):
         fig = go.Figure(data = [trace], layout = layout)
         col2.plotly_chart(fig, use_container_width=False, sharing='streamlit')
 
-        st.header('Settings for Variogram')
-        col1, col2, col3 = st.columns(3)
-        range_variogram = col1.number_input('Range', value=12.0, step=1.0)
-        sill_variogram = col2.number_input('Sill', value=3.0, step=1.0)
-        nugget_variogram = col3.number_input('Nugget', value=1.0, step=1.0)
+        st.header('User settings for Variogram')
+        my_kriging = SpatialKriging(data)
+        V = my_kriging.build_experimental_variogram()
+        col1, col2, col3, col4 = st.columns(4)
+        model_options = ['spherical', 'exponential', 'gaussian', 'matern']
+        model = col1.selectbox('Model', model_options, index=model_options.index(V.model.__name__), key='user_model')
+        range_variogram = col2.number_input('Range', value=12.0, step=1.0)
+        sill_variogram = col3.number_input('Sill', value=3.0, step=1.0)
+        nugget_variogram = col4.number_input('Nugget', value=1.0, step=1.0)
+        my_kriging.set_variogram_model_parameters(range_variogram, sill_variogram, nugget_variogram, model)
 
         # calculate
         st.header('Kriging data preparation')
-        my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
-        h_variogram = my_kriging.dist_matrix[:,1]
-        gamma_variogram = my_kriging.variogram_matrix[:-1,1]
+        h_variogram = my_kriging.dist_matrix[:,:].flatten()
+        gamma_variogram = my_kriging.variogram_matrix[:-1,:-1].flatten()
         fig, ax = plt.subplots()
         ax.scatter(h_variogram, gamma_variogram)
         ax.set_xlabel('h')
