@@ -13,7 +13,7 @@ def main_spatial_kriging_test(st):
    st.header('Known data')
    #d = {'X': [2.0, 3.0, 9.0, 6.0, 5.0], 'Y': [2.0, 7.0, 9.0, 5.0, 3.0], 'Z': [3.0, 4.0, 2.0, 4.0, 6.0]}
    #d = {'X': [2.0, 3.0, 9.0, 6.0, 5.0], 'Y': [2.0, 7.0, 9.0, 5.0, 3.0], 'Z': [3.0, 3.0, 3.0, 3.0, 3.0]} # test data set with equal z-levels
-   d = {'X': [60.0, 25.0, 80.0], 'Y': [80.0, 50.0, 10.0], 'Z': [0.1, 0.12, 0.2]}
+   d = {'X': [60.0, 25.0, 80.0], 'Y': [80.0, 50.0, 10.0], 'Z': [0.1, 0.12, 0.2], 'Name': ['P1', 'P2', 'P3']}
    #d = {'X': [20.0, 25.0, 75.0], 'Y': [50.0, 50.0, 50.0], 'Z': [0.1, 0.12, 0.2]}
    data = pd.DataFrame(data =d)
    print('\n')
@@ -25,7 +25,7 @@ def main_spatial_kriging_test(st):
 
    # visualize data
    trace = go.Scatter3d(
-      x = data['X'], y = data['Y'], z = data['Z'], mode='markers', marker = dict(
+      x = data['X'], y = data['Y'], z = data['Z'], text=data['Name'], mode='markers+text', marker = dict(
          size = 5.0,
          color = data['Z'], # set color to an array/list of desired values
          colorscale = 'Viridis'
@@ -36,17 +36,21 @@ def main_spatial_kriging_test(st):
    col2.plotly_chart(fig, use_container_width=False, sharing='streamlit')
 
    st.header('Settings for Variogram')
-   col1, col2, col3 = st.columns(3)
+   my_kriging = SpatialKriging(data)
+   col1, col2, col3, col4 = st.columns(4)
    #range_variogram = col1.number_input('Range', value=10.0, step=1.0)
    #sill_variogram = col2.number_input('Sill', value=7.5, step=1.0)
    #nugget_variogram = col3.number_input('Nugget', value=2.5, step=1.0)
-   range_variogram = col1.number_input('Range', value=300.0, step=1.0)
-   sill_variogram = col2.number_input('Sill', value=1.0, step=1.0)
-   nugget_variogram = col3.number_input('Nugget', value=0.0, step=1.0)
+   model_options = ['spherical', 'exponential', 'gaussian', 'matern']
+   model = col1.selectbox('Model', model_options, index=0, key='user_model_spatial_kriging_test')
+   range_variogram = col2.number_input('Range', value=300.0, step=1.0)
+   sill_variogram = col3.number_input('Sill', value=1.0, step=1.0)
+   nugget_variogram = col4.number_input('Nugget', value=0.0, step=1.0)
+   my_kriging.set_variogram_model_parameters(range_variogram, sill_variogram, nugget_variogram, model)
 
    # calculate
    st.header('Kriging data preparation')
-   my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
+   #my_kriging = SpatialKriging(data, range_variogram, sill_variogram, nugget_variogram)
    h_variogram = my_kriging.dist_matrix[:,:].flatten()
    gamma_variogram = my_kriging.variogram_matrix[:-1,:-1].flatten()
    fig, ax = plt.subplots()
@@ -79,7 +83,7 @@ def main_spatial_kriging_test(st):
 
    st.header('Unknown data')
    #d1 = {'X': [5.0], 'Y': [5.0]}
-   d1 = {'X': [50.0], 'Y': [50.0]}
+   d1 = {'X': [50.0], 'Y': [50.0], 'Name': 'P_unknown'}
    data_unknown = pd.DataFrame(data=d1)
    st.write(data_unknown)
 
@@ -100,14 +104,14 @@ def main_spatial_kriging_test(st):
 
    # visualize data
    trace_known = go.Scatter3d(
-      x = data['X'], y = data['Y'], z = data['Z'], mode='markers', marker = dict(
+      x = data['X'], y = data['Y'], z = data['Z'], text=data['Name'], mode='markers+text', marker = dict(
          size = 5.0,
          color = 'grey', # set color to an array/list of desired values
          #colorscale = 'Viridis'
          )
       )
    trace_unknown = go.Scatter3d(
-      x = data_unknown['X'], y = data_unknown['Y'], z = data_unknown['Z'], mode='markers', marker = dict(
+      x = data_unknown['X'], y = data_unknown['Y'], z = data_unknown['Z'], text=data_unknown['Name'], mode='markers+text', marker = dict(
          size = 5.0,
          color = data_unknown['Z'], # set color to an array/list of desired values
          colorscale = 'Viridis'
@@ -133,8 +137,7 @@ def main_spatial_kriging_test(st):
 
    col2.markdown('Weights')
    weights = [my_kriging.estimate_with_ordinary_kriging(point)[2] for point in points_unknown]
-   #col2.write(weights[0][:-1])
-   col2.write(weights[0])
+   col2.write(weights[0][:-1])
    col3.markdown('Sum of weights (must be ~1.0)')
    col3.write(np.sum(weights[0][:-1]))
    #col3.write(np.sum(weights[0]))
@@ -156,25 +159,47 @@ def main_spatial_kriging_test(st):
 
    xx, yy = np.meshgrid(x_points_grid, y_points_grid)
    zz = np.zeros_like(xx)
+   zz_var = np.zeros_like(xx)     # estimation variance
    for i in range(zz.shape[0]):
      for j in range(zz.shape[1]):
-       zz[i,j] = my_kriging.estimate_with_ordinary_kriging((xx[i,j], yy[i,j]))[0]
+       zz[i,j], zz_var[i,j], _, _ = my_kriging.estimate_with_ordinary_kriging((xx[i,j], yy[i,j]))
 
-   layout = go.Layout(title = 'Estimated Elevation (grey points: known points, surface: estimated elevation surface)',
+   layout = go.Layout(title = 'Estimated Mean (grey points: known points, surface: estimated mean)',
                      autosize=False,
                      width=800,
                      height=800)
 
    trace_known = go.Scatter3d(
-      x = data['X'], y = data['Y'], z = data['Z'], mode='markers', marker = dict(
+      x = data['X'], y = data['Y'], z = data['Z'], text=data['Name'], mode='markers+text', marker = dict(
          size = 5.0,
          color = 'grey', # set color to an array/list of desired values
          #colorscale = 'Viridis'
          )
       )
 
+   trace2d_known = go.Scatter(
+      x = data['X'], y = data['Y'], text=data['Name'], mode='markers+text', 
+             marker = dict(
+             size = 5.0,
+             color = 'black', # set color to an array/list of desired values
+             #colorscale = 'Viridis'
+                ),
+         textfont=dict(
+             family="sans serif",
+             size=18,
+             color="black"
+         )
+      )
+
    fig1 = go.Figure(data=[trace_known, go.Surface(x=xx, y=yy, z=zz, colorscale = 'Viridis')], layout=layout)
    st.plotly_chart(fig1, use_container_width=False, sharing='streamlit')
-   fig2 = go.Figure(data=go.Contour(x=x_points_grid, y=y_points_grid, z=zz, colorscale = 'Viridis'), layout=layout)
+   fig2 = go.Figure(data=[trace2d_known, go.Contour(x=x_points_grid, y=y_points_grid, z=zz, colorscale = 'Viridis')], layout=layout)
    st.plotly_chart(fig2, use_container_width=False, sharing='streamlit')
+
+   layout_var = go.Layout(title = 'Estimation Variance (grey points: known points, surface: estimation variance)',
+                      autosize=False,
+                      width=800,
+                      height=800)
+   fig3 = go.Figure(data=[trace2d_known, go.Contour(x=x_points_grid, y=y_points_grid, z=zz_var, colorscale = 'Viridis')], layout=layout_var)
+   st.plotly_chart(fig3, use_container_width=False, sharing='streamlit')
 

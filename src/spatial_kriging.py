@@ -121,12 +121,12 @@ class SpatialKriging():
 
         weights = solve(covariance_matrix, covariance_vector)
         # estimate mean and variance
-        z_est = self.data.iloc[:,2].dot(weights[:-1])           # mean
-        var_est = self.nugget + self.sill - covariance_vector[:-1].dot(weights[:-1])          # variance
+        z_est = self.data['Z'].dot(weights[:-1])                                                # mean
+        var_est = self.nugget + self.sill - covariance_vector[:-1].dot(weights[:-1])            # variance
 
         #weights = solve(covariance_matrix[:-1,:-1], covariance_vector[:-1])
         ## estimate mean and variance
-        #z_est = self.data.iloc[:,2].dot(weights)           # mean
+        #z_est = self.data['Z'].dot(weights)           # mean
         #var_est = self.nugget + self.sill - covariance_vector[:-1].dot(weights)          # variance
         
         return z_est, var_est, weights, variogram_vector
