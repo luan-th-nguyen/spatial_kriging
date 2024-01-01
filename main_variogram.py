@@ -64,7 +64,7 @@ def main_variogram(st):
         if V.maxlag is None:
             pass
         else:
-            self.maxlag = float(maxlag)
+            V.maxlag = float(maxlag)
 
         print(V)
         fig_variogram = V.plot()
