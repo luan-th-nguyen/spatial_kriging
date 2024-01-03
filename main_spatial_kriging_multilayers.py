@@ -17,7 +17,8 @@ def main_spatial_kriging_multilayers(st):
     uploaded_file = st.file_uploader("Choose a CSV file of known data points")
     if uploaded_file is not None:
         # read data
-        data = pd.read_csv(uploaded_file)
+        data = pd.read_csv(uploaded_file, sep=",|;")
+        st.write(len(data.columns))
         data = data.rename(columns=lambda c: c.strip()) # remove trailing whitespaces in column names
         st.write(data)
 
@@ -29,12 +30,12 @@ def main_spatial_kriging_multilayers(st):
         my_krigings = [None]*number_layers
         for i in range(number_layers):
             data_column_z = data[data.columns[[3+i]]]
-            data_i = data[["X", "Y"]]
+            data_i = data[["Borelog", "X", "Y"]]
             data_i["Z"] = data_column_z
             my_kriging_i = {}
             my_kriging_i['model'] = SpatialKriging(data_i) # variogram function
             V = my_kriging_i['model'].build_experimental_variogram()
-            col0, col1, col2, col3, col4, col5 = st.columns([1, 1,1,1,2,2])
+            col0, col1, col2, col3, col4, col5 = st.columns([1,1,1,1,2,2])
             col0.text('Layer ' + str(i))
             model_options = ['spherical', 'exponential', 'gaussian', 'matern']
             V.model = col1.selectbox('Model', model_options, index=model_options.index(V.model.__name__), key='model_layer_' + str(i))
@@ -76,12 +77,16 @@ def main_spatial_kriging_multilayers(st):
             my_krigings[i]['model'].set_variogram_model_parameters(range_variogram, sill_variogram, nugget_variogram, model)
 
         # calculate variance matrices
+        st.header('Kriging data preparation')
+        for i in range(number_layers):
+            st.write('Layer {0}... is done'.format(i))
+            h_variogram = my_krigings[i]['model'].dist_matrix[:,:].flatten()
+            gamma_variogram = my_krigings[i]['model'].variogram_matrix[:-1,:-1].flatten()
         show_matrices = st.checkbox('Show variogram and variance matrices?', value=False)
         if show_matrices:
            for i in range(number_layers):
-                st.header('Kriging data preparation')
-                h_variogram = my_krigings[i]['model'].dist_matrix[:,:].flatten()
-                gamma_variogram = my_krigings[i]['model'].variogram_matrix[:-1,:-1].flatten()
+                #h_variogram = my_krigings[i]['model'].dist_matrix[:,:].flatten()
+                #gamma_variogram = my_krigings[i]['model'].variogram_matrix[:-1,:-1].flatten()
                 fig, ax = plt.subplots()
                 ax.scatter(h_variogram, gamma_variogram)
                 ax.set_xlabel('h')
@@ -98,7 +103,7 @@ def main_spatial_kriging_multilayers(st):
                 col3.write(fig)
 
 
-        # show results
+        # show Kriging results
         st.header('Generate dense data points within range of known data, perform kriging on each of the points and plot results')
         show_results = st.checkbox('Show Kriging results?', value=False)
         colors = ['blue', 'grey', 'yellow', 'purple', 'orange', 'cyan']
@@ -117,12 +122,15 @@ def main_spatial_kriging_multilayers(st):
                     for j in range(zz.shape[1]):
                         zz[i,j], zz_var[i,j], _, _ = my_krigings[ii]['model'].estimate_with_ordinary_kriging((xx[i,j], yy[i,j]))
 
+                if ii == 1:
+                    text_borelog = my_krigings[ii]['data']['Borelog']
+                else:
+                    text_borelog = ''
                 trace_known = go.Scatter3d(
-                   x = my_krigings[ii]['data']['X'], y = my_krigings[ii]['data']['Y'], z = my_krigings[ii]['data']['Z'], text='', mode='markers+text', marker = dict(
+                   x = my_krigings[ii]['data']['X'], y = my_krigings[ii]['data']['Y'], z = my_krigings[ii]['data']['Z'], text=text_borelog, mode='markers+text', marker = dict(
                         size = 5.0,
-                        #color = 'grey', # set color to an array/list of desired values
-                        #colorscale = 'Viridis'
-                        color=colors[ii],
+                        color = 'black', # set color to an array/list of desired values
+                        #color=colors[ii],
                         showscale = False,
                         )
                    )
@@ -152,6 +160,7 @@ def main_spatial_kriging_multilayers(st):
             layout = go.Layout(title = 'Estimated Mean (grey points: known points, surface: estimated elevation surface)',
                                 autosize=False,
                                 coloraxis_showscale=False,
+                                showlegend=False,
                                 width=1200,
                                 height=1200)
             data_to_plot = []
@@ -159,9 +168,90 @@ def main_spatial_kriging_multilayers(st):
                 data_to_plot += my_krigings[ii]['data_out']
 
             fig1 = go.Figure(data=data_to_plot, layout=layout)
-            #fig1.update_layout(coloraxis_showscale=False)
+            fig1.update_layout(yaxis_scaleanchor="x")   # true aspect ratio
             st.plotly_chart(fig1, use_container_width=False, sharing='streamlit')
         
+
+        # show linearly interpolated results
+        st.header('Generate dense data points within range of known data, perform kriging on each of the points and plot results')
+        show_results_interp = st.checkbox('Show results for other interpolation methods?', value=False)
+        colors = ['blue', 'lightgrey', 'yellow', 'purple', 'orange', 'cyan']
+        if show_results_interp:
+            interp_method = st.selectbox('Interpolation method', ['None', 'linear', 'nearest', 'cubic', 'ordinary Kriging'], index=0)
+            # visualize grid data
+            for ii in range(number_layers):
+                x_min, x_max = np.min(my_krigings[ii]['data']['X']), np.max(my_krigings[ii]['data']['X'])
+                y_min, y_max = np.min(my_krigings[ii]['data']['Y']), np.max(my_krigings[ii]['data']['Y'])
+                x_points_grid = np.linspace(x_min, x_max, 50)
+                y_points_grid = np.linspace(y_min, y_max, 50)
+
+                xx, yy = np.meshgrid(x_points_grid, y_points_grid)
+                zz = np.zeros_like(xx)         # estimated mean
+                zz_var = np.zeros_like(xx)     # estimation variance
+                points = [(x, y) for x, y in zip(my_krigings[ii]['data']['X'], my_krigings[ii]['data']['Y'])]
+                if interp_method != 'None':
+                    if interp_method != 'ordinary Kriging':
+                        zz = scipy.interpolate.griddata(points, my_krigings[ii]['data']['Z'], (xx, yy), method=interp_method)    # method = {'linear', 'nearest', 'cubic'}
+                    else:
+                        for i in range(zz.shape[0]):
+                            for j in range(zz.shape[1]):
+                                zz[i,j], zz_var[i,j], _, _ = my_krigings[ii]['model'].estimate_with_ordinary_kriging((xx[i,j], yy[i,j]))
+
+                if ii == 1:
+                    text_borelog =my_krigings[ii]['data']['Borelog']
+                else:
+                    text_borelog = ''
+                trace_known = go.Scatter3d(
+                   x = my_krigings[ii]['data']['X'], y = my_krigings[ii]['data']['Y'], z = my_krigings[ii]['data']['Z'], text=text_borelog, mode='markers+text', marker = dict(
+                        size = 5.0,
+                        #color=colors[ii],
+                        color='black',
+                        showscale = False,
+                        )
+                   )
+                # bore logs as cylinders
+                cylinder_surface_ii = []
+                if ii > 0: # ii == 0: water level
+                    for jj in range(len(my_krigings[ii]['data']['Z'])):
+                        h = my_krigings[ii-1]['data']['Z'][jj] - my_krigings[ii]['data']['Z'][jj]
+                        x_cyl, y_cyl, z_cyl = cylinder(my_krigings[ii]['data']['X'][jj], my_krigings[ii]['data']['Y'][jj], my_krigings[ii]['data']['Z'][jj], 0.5, h)
+                        cylinder_surface_jj = go.Surface(x=x_cyl, y=y_cyl, z=z_cyl,
+                                                        colorscale=[[0, colors[ii]], [1, colors[ii]]],
+                                                        opacity=0.7,
+                                                        showscale=False,
+                                                      )
+                        cylinder_surface_ii += [cylinder_surface_jj]
+
+                if cylinder_surface_ii:
+                    if interp_method != 'None':
+                        data_out = [trace_known, *cylinder_surface_ii, go.Surface(x=xx, y=yy, z=zz, 
+                                                            colorscale=[[0, colors[ii]], [1, colors[ii]]],
+                                                            showscale=False)]
+                    else:
+                        data_out = [trace_known, *cylinder_surface_ii]
+                else:
+                    if interp_method != 'None':
+                        data_out = [trace_known, go.Surface(x=xx, y=yy, z=zz, 
+                                                            colorscale=[[0, colors[ii]], [1, colors[ii]]],
+                                                            showscale=False)]
+                    else:
+                        data_out = [trace_known]
+                my_krigings[ii]['data_out'] = data_out
+
+            layout = go.Layout(title = 'Estimated Mean (grey points: known points, surface: estimated elevation surface)',
+                                autosize=False,
+                                coloraxis_showscale=False,
+                                showlegend=False,
+                                width=1200,
+                                height=1200)
+            data_to_plot = []
+            for ii in range(number_layers):
+                data_to_plot += my_krigings[ii]['data_out']
+
+            fig2 = go.Figure(data=data_to_plot, layout=layout)
+            fig2.update_layout(yaxis_scaleanchor="x")   # true aspect ratio
+            st.plotly_chart(fig2, use_container_width=False, sharing='streamlit')
+
 
 def cylinder(x, y, z, r, dz):
     """Create a cylindrical mesh located at x, y, z, with radius r and height dz"""

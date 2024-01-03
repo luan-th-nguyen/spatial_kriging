@@ -24,7 +24,7 @@ class SpatialKriging():
         """
         coordinates = self.data[['X', 'Y']]
         values = self.data['Z']
-        V = skg.Variogram(coordinates=coordinates, values=values)
+        V = skg.Variogram(coordinates=coordinates, values=values, n_lags=6)
 
         return V
     
