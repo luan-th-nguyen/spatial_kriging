@@ -57,7 +57,7 @@ def main_spatial_kriging_multilayers(st):
 
         # set variogram functions
         st.header('User settings for Variogram for each of the layers')
-        use_experimental_V = st.checkbox('Use experimental variogram function and parameters?', value=False)
+        use_experimental_V = st.checkbox('Use experimental variogram function and parameters?', value=True)
         for i in range(number_layers):
             col0, col1, col2, col3, col4 = st.columns(5)
             model_options = ['spherical', 'exponential', 'gaussian', 'matern']
@@ -157,6 +157,11 @@ def main_spatial_kriging_multilayers(st):
                                                         showscale=False)]
                 my_krigings[ii]['data_out'] = data_out
 
+            camera = dict(
+                        up=dict(x=0, y=0, z=1),
+                        center=dict(x=0, y=0, z=0),
+                        eye=dict(x=0.85, y=1.75, z=0.5)
+                        )            
             layout = go.Layout(title = 'Estimated Mean (grey points: known points, surface: estimated elevation surface)',
                                 autosize=False,
                                 coloraxis_showscale=False,
@@ -169,6 +174,7 @@ def main_spatial_kriging_multilayers(st):
 
             fig1 = go.Figure(data=data_to_plot, layout=layout)
             fig1.update_layout(yaxis_scaleanchor="x")   # true aspect ratio
+            fig1.update_layout(scene_camera=camera)
             st.plotly_chart(fig1, use_container_width=False, sharing='streamlit')
         
 
@@ -238,6 +244,11 @@ def main_spatial_kriging_multilayers(st):
                         data_out = [trace_known]
                 my_krigings[ii]['data_out'] = data_out
 
+            camera = dict(
+                        up=dict(x=0, y=0, z=1),
+                        center=dict(x=0, y=0, z=0),
+                        eye=dict(x=0.5, y=2.0, z=0.5)
+                        )            
             layout = go.Layout(title = 'Estimated Mean (grey points: known points, surface: estimated elevation surface)',
                                 autosize=False,
                                 coloraxis_showscale=False,
@@ -250,6 +261,7 @@ def main_spatial_kriging_multilayers(st):
 
             fig2 = go.Figure(data=data_to_plot, layout=layout)
             fig2.update_layout(yaxis_scaleanchor="x")   # true aspect ratio
+            fig2.update_layout(scene_camera=camera)
             st.plotly_chart(fig2, use_container_width=False, sharing='streamlit')
 
 
