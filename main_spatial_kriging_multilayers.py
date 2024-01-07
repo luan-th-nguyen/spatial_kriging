@@ -30,8 +30,8 @@ def main_spatial_kriging_multilayers(st):
         my_krigings = [None]*number_layers
         for i in range(number_layers):
             data_column_z = data[data.columns[[3+i]]]
-            data_i = data[["Borelog", "X", "Y"]]
-            data_i["Z"] = data_column_z
+            data_i = data[["Borelog", "X", "Y"]].copy()
+            data_i["Z"] = data_column_z.copy()
             my_kriging_i = {}
             my_kriging_i['model'] = SpatialKriging(data_i) # variogram function
             V = my_kriging_i['model'].build_experimental_variogram()
@@ -46,11 +46,11 @@ def main_spatial_kriging_multilayers(st):
             else:
                 V.maxlag = float(maxlag)
 
-            print(V)
+            #print(V)
             fig_variogram = V.plot()
             col4.write(fig_variogram)
             col5.write(V)       # suggested variogram parameters
-            print(V.parameters) # [range, sill, nugget]
+            #print(V.parameters) # [range, sill, nugget]
             my_kriging_i['V'] = V                       # experimental variogram model and parameters
             my_kriging_i['data'] = data_i               # known data will be later used for plotting
             my_krigings[i] = my_kriging_i               # store variogram for the layer
@@ -108,14 +108,13 @@ def main_spatial_kriging_multilayers(st):
         show_results = st.checkbox('Show Kriging results?', value=False)
         colors = ['blue', 'grey', 'yellow', 'purple', 'orange', 'cyan']
         if show_results:
-            # visualize grid data
+            # grid data for visualization
+            x_min, x_max = np.min(data['X']), np.max(data['X'])
+            y_min, y_max = np.min(data['Y']), np.max(data['Y'])
+            x_points_grid = np.linspace(x_min, x_max, 50)
+            y_points_grid = np.linspace(y_min, y_max, 50)
+            xx, yy = np.meshgrid(x_points_grid, y_points_grid)
             for ii in range(number_layers):
-                x_min, x_max = np.min(my_krigings[ii]['data']['X']), np.max(my_krigings[ii]['data']['X'])
-                y_min, y_max = np.min(my_krigings[ii]['data']['Y']), np.max(my_krigings[ii]['data']['Y'])
-                x_points_grid = np.linspace(x_min, x_max, 30)
-                y_points_grid = np.linspace(y_min, y_max, 30)
-
-                xx, yy = np.meshgrid(x_points_grid, y_points_grid)
                 zz = np.zeros_like(xx)         # estimated mean
                 zz_var = np.zeros_like(xx)     # estimation variance
                 for i in range(zz.shape[0]):
@@ -178,20 +177,19 @@ def main_spatial_kriging_multilayers(st):
             st.plotly_chart(fig1, use_container_width=False, sharing='streamlit')
         
 
-        # show linearly interpolated results
+        # show other interpolation results
         st.header('Generate dense data points within range of known data, perform kriging on each of the points and plot results')
         show_results_interp = st.checkbox('Show results for other interpolation methods?', value=False)
         colors = ['blue', 'lightgrey', 'yellow', 'purple', 'orange', 'cyan']
         if show_results_interp:
             interp_method = st.selectbox('Interpolation method', ['None', 'linear', 'nearest', 'cubic', 'ordinary Kriging'], index=0)
-            # visualize grid data
+            # grid data for visualization
+            x_min, x_max = np.min(data['X']), np.max(data['X'])
+            y_min, y_max = np.min(data['Y']), np.max(data['Y'])
+            x_points_grid = np.linspace(x_min, x_max, 50)
+            y_points_grid = np.linspace(y_min, y_max, 50)
+            xx, yy = np.meshgrid(x_points_grid, y_points_grid)
             for ii in range(number_layers):
-                x_min, x_max = np.min(my_krigings[ii]['data']['X']), np.max(my_krigings[ii]['data']['X'])
-                y_min, y_max = np.min(my_krigings[ii]['data']['Y']), np.max(my_krigings[ii]['data']['Y'])
-                x_points_grid = np.linspace(x_min, x_max, 50)
-                y_points_grid = np.linspace(y_min, y_max, 50)
-
-                xx, yy = np.meshgrid(x_points_grid, y_points_grid)
                 zz = np.zeros_like(xx)         # estimated mean
                 zz_var = np.zeros_like(xx)     # estimation variance
                 points = [(x, y) for x, y in zip(my_krigings[ii]['data']['X'], my_krigings[ii]['data']['Y'])]
@@ -263,6 +261,45 @@ def main_spatial_kriging_multilayers(st):
             fig2.update_layout(yaxis_scaleanchor="x")   # true aspect ratio
             fig2.update_layout(scene_camera=camera)
             st.plotly_chart(fig2, use_container_width=False, sharing='streamlit')
+
+
+        # download interpolated results on grid
+        download_csv = st.checkbox('Download output data as CSV?')
+        if download_csv:
+            data_out = {}
+            x_min, x_max = np.min(data['X']), np.max(data['X'])
+            y_min, y_max = np.min(data['Y']), np.max(data['Y'])
+            x_points_grid = np.linspace(x_min, x_max, 10)
+            y_points_grid = np.linspace(y_min, y_max, 10)
+            xx, yy = np.meshgrid(x_points_grid, y_points_grid)
+            borelog_names = ['Virtual_BH' + str(bh_i) for bh_i in range(xx.size)]
+            data_out['Borelog'] = borelog_names
+            data_out['X'] = xx.reshape(-1)
+            data_out['Y'] = yy.reshape(-1)
+            for ii in range(number_layers):
+                zz = np.zeros_like(xx)         # estimated mean
+                zz_var = np.zeros_like(xx)     # estimation variance
+                for i in range(zz.shape[0]):
+                    for j in range(zz.shape[1]):
+                        zz[i,j], zz_var[i,j], _, _ = my_krigings[ii]['model'].estimate_with_ordinary_kriging((xx[i,j], yy[i,j]))
+                
+                # store interpolation results
+                if ii == 0: # water level
+                    data_out['GWL [mNN]'] = zz.reshape(-1)
+                elif ii == 1: # surface level
+                    data_out['GOK [mNN]'] = zz.reshape(-1)
+                else:
+                    data_out['Base soil layer {0}'.format(ii-1)] = zz.reshape(-1)
+
+            data_out_df = pd.DataFrame(data=data_out)
+            data_out_csv = data_out_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                               "Press to Download",
+                               data_out_csv,
+                               "file_out.csv",
+                               "text/csv",
+                               key='download-csv'
+                            )
 
 
 def cylinder(x, y, z, r, dz):
