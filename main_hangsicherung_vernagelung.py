@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 
 def main_hangsicherung_vernagelung(st):
-    st.markdown('Nachweis der lokalen Standsicherheit nach der Methode RUVOLUM')
+    st.markdown('**Nachweis der lokalen Standsicherheit nach der Methode RUVOLUM**')
     st.markdown('Cala M, Flum D, Roduner A, Ruegger R, Wartmann ST. Slope Stabilization System and RUVOLUM® dimensioning method. AGH University of Science and Technology, Faculty of Mining and Geoengineering. 2012.')
 
     st.header('Project information')
@@ -30,7 +30,7 @@ def main_hangsicherung_vernagelung(st):
     col1, col2, col3 = st.columns(3)
     zRkv = col1.number_input('Zugfestigkeit in Längsrichtung z_Rkv[kN/m]', value=150.0)
     zRkh = col2.number_input('Zugfestigkeit in Querrichtung z_Rkh [kN/m]', value=50.0)
-    ZRk = col3.number_input('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_R [kN]k', value=30.0)
+    ZRk = col3.number_input('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_R [kN]', value=30.0)
     DRk = col1.number_input('Tragwiderstand gegen Durchstanzen in Nagelrichtung D_Rk [kN]', value=180.0)
     PRk = col2.number_input('Tragwiderstand gegen Abscheren am Krallplattenrand P_Rk [kN]', value=90.0)
     Zd = col3.number_input('Nach oben gerichtete, böschungsparallele Kraft im Netz (Standardwert nach Geobrugg) Zd [kN]', value=15.0)
@@ -38,7 +38,7 @@ def main_hangsicherung_vernagelung(st):
     zeta = col2.number_input('Oberer Radius des Druckkegels zeta [m]', value=0.17)
     delta = col3.number_input('Neigung des Druckkegels delta [°]', value=45.0)
 
-    st.markdown('**zum Nagel**')
+    st.markdown('**zu den Nägeln**')
     col1, col2, col3, col4 = st.columns(4)
     nagel_Da_datenblatt = col1.number_input('Außendurchmesser (inkl. Schraubrippen) DA [mm]', value=29.0)
     nagel_Di_datenblatt = col2.number_input('Innendurchmesser DI [mm]', value=13.0)
@@ -46,6 +46,7 @@ def main_hangsicherung_vernagelung(st):
     nagel_Rk_datenblatt = col4.number_input('Charakteristische Tragfähigkeit Rk [kN]', value=255.0)
     nagel_delta_t_outside = col1.number_input('Abrostung, außenseitig [mm]', value=4.0)
     nagel_concrete_cover = col2.number_input('Betondeckung [mm]', value=30.0)
+    dv = 2*nagel_concrete_cover + nagel_Da_datenblatt
     Da_uncorroded = math.sqrt(nagel_As_datenblatt*4.0/math.pi + nagel_Di_datenblatt**2)
     fyk = nagel_Rk_datenblatt*1000.0/nagel_As_datenblatt   # N/mm^2
     Da_corroded = Da_uncorroded - nagel_delta_t_outside
@@ -59,6 +60,7 @@ def main_hangsicherung_vernagelung(st):
     col2.write("Ansetzbare Querschnittsfläche As' = {0:.2f} [mm^2]".format(As_statik))
     col1.write("Char. Tragfähigkeit unter Abrostung, Zugbeanspruchung R'k  = {0:.2f} [kN]".format(Rk_statik))
     col2.write("Char. Tragfähigkeit unter Abrostung, Schubbeanspruchung R'q,k   = {0:.2f} [kN]".format(Rqk_statik))
+    col1.write("Durchmesser Verpresskörper (keine Muffung berücksichtigt) dv   = {0:.2f} [kN]".format(dv))
 
     st.markdown('**Charakteristische Bodenkennwerte**')
     col1, col2, col3, col4 = st.columns(4)
@@ -78,7 +80,8 @@ def main_hangsicherung_vernagelung(st):
     gamma_M = col4.number_input('Teisicherheitsbeiwert Stahlzugglied gamma_M [-]', value=1.15)
     gamma_st = col1.number_input('Pfahlmantelwiderstand (Zug) aus Pfahlprobebelastung gamma_st [-]', value=1.15)
     eta_M = col2.number_input('Modellfaktor für verpresste Mikropfähle (DIN 1054) ηM [-]', value=1.25)
-    gamma_mod = col3.number_input('Korrekturwert der Modellunsicherheit (gem. RUVOLUM) gamma_mod [-]', value=1.1)
+    gamma_R = col3.number_input('Geflecht (EAB Zulassung TECCO) gamma_R [-]', value=1.5)
+    gamma_mod = col4.number_input('Korrekturwert der Modellunsicherheit (gem. RUVOLUM) gamma_mod [-]', value=1.1)
 
     st.markdown('**Bemessungswerte der Bodenkennwerte**')
     phi_d = math.atan(math.tan(phi_k*math.pi/180)/gamma_phi)*180/math.pi    # degree
@@ -93,7 +96,7 @@ def main_hangsicherung_vernagelung(st):
     col4.write("Wichte unter Auftrieb gamma_d' = {0:.2f} [°]".format(wichte_prime_d))
 
 
-    st.header('Nachweise')
+    st.header('Lokale Bruchmechanismen')
     st.markdown('**Bruchmechanismus 1: Oberflächennahe, böschungsparallele Instabilitäten**')
     image_falure_mode1 = Image.open('./media/nail_local_failure_mode1.PNG')
     st.image(image_falure_mode1)
@@ -115,7 +118,7 @@ def main_hangsicherung_vernagelung(st):
     st.markdown('**Fall 2A: Einkörper-Gleitmechanismus**')
     image_falure_mode2A = Image.open('./media/nail_local_failure_mode2A.PNG')
     st.image(image_falure_mode2A)
-    beta_grenz = alpha_k - math.atan(t/(2*av))*180/math.pi     # deg.
+    beta_grenz = alpha_k - math.atan(t/(2*av + t/math.tan(alpha_k+nagel_psi)*math.pi/180))*180/math.pi     # max. value for beta, deg.
     ti = 0.0
     delta_t = 0.05 #m
     Pd1_max = 0.0
@@ -123,8 +126,8 @@ def main_hangsicherung_vernagelung(st):
     # Schleife über die Dicke des Körpers t: ti = 0..t, delta_t = 0.05 m
     while ti < t:
         ah_red = get_ah_reduced(ah, zeta, ti, delta)
-        beta_i = alpha_k - math.atan(ti/(2*av))*180/math.pi     # deg.
-        (Gdi, Fsi, Ai) = get_parameters_1body(beta_i, alpha_k, ah_red, av, wichte_prime_d, ti)
+        beta_i = alpha_k - math.atan(ti/(2*av + ti/math.tan(alpha_k+nagel_psi)*math.pi/180))*180/math.pi     # deg.
+        (Gdi, Fsi, Ai) = get_parameters_1body(alpha_k, ah_red, av, wichte_prime_d, ti)
         Pd1 = calc_Pd1(Gdi, Fsi, Zd, alpha_k, beta_i, nagel_psi, phi_d, c_d, Ai, gamma_mod)
         if Pd1 > Pd1_max:
             Pd1_max = Pd1
@@ -150,7 +153,7 @@ def main_hangsicherung_vernagelung(st):
     st.markdown('**Fall 2B: Zweikörper-Gleitmechanismus**')
     image_falure_mode2B = Image.open('./media/nail_local_failure_mode2B.PNG')
     st.image(image_falure_mode2B)
-    beta_grenz_B = alpha_k - math.atan(t/(2*av))*180/math.pi     # deg.
+    beta_grenz_B = alpha_k - math.atan(t/(2*av + t/math.tan(alpha_k+nagel_psi)*math.pi/180))*180/math.pi     # deg.
     ti = 0.0
     delta_t = 0.05 #m
     Pd2_max = 0.0
@@ -158,13 +161,16 @@ def main_hangsicherung_vernagelung(st):
     # Schleife über die Dicke des Körpers t: ti = 0..t, delta_t = 0.05 m
     while ti < t:
         ah_red = get_ah_reduced(ah, zeta, ti, delta)
-        L1i = 0.0
-        delta_L1i = 0.05 # m
-        while L1i < 2*av:
-            #L2i = 2*av - L1i
-            L2i = math.sqrt((2*av - L1i)**2 + ti**2)
-            beta_i = alpha_k - math.atan(ti/(2*av-L1i))*180/math.pi     # deg.
-            (G1di, G2di, F1si, F2si, A1i, A2i) = get_parameters_2body(L1i, L2i, beta_i, alpha_k, ah_red, av, wichte_prime_d, ti)
+        beta_i = 0.0
+        delta_beta = 1.0 # deg.
+        beta_i_max = alpha_k - math.atan(ti/(2*av + ti/math.tan(alpha_k+nagel_psi)*math.pi/180))*180/math.pi     # deg.
+        while beta_i < beta_i_max:
+            #rho1 = math.atan(ti/2*av)*180/math.pi    # deg.
+            L1i = 2*av - ti/math.tan((alpha_k-beta_i)*math.pi/180) + ti/math.tan((alpha_k+nagel_psi)*math.pi/180)
+            L2i = ti/math.sin((alpha_k-beta_i)*math.pi/180)
+            F1i = ti*(2*av - ti/math.tan((alpha_k-beta_i)*math.pi/180)) + ti**2/(2*math.tan((alpha_k+nagel_psi)*math.pi/180))
+            F2i = ti**2/(2*math.tan((alpha_k-beta_i)*math.pi/180))
+            (G1di, G2di, F1si, F2si, A1i, A2i) = get_parameters_2body(L1i, L2i, F1i, F2i, alpha_k, ah_red, av, wichte_prime_d, ti)
             Pd2 = calc_Pd2(G1di, G2di, F1si, F2si, Zd, alpha_k, beta_i, nagel_psi, phi_d, c_d, A1i, A2i, gamma_mod)
             if Pd2 > Pd2_max:
                 Pd2_max = float(Pd2)
@@ -179,7 +185,7 @@ def main_hangsicherung_vernagelung(st):
                 results_B['F2si'] = F2si
                 results_B['A1i'] = A1i
                 results_B['A2i'] = A2i
-            L1i += delta_L1i
+            beta_i += delta_beta
         ti += delta_t
 
     col1, col2 = st.columns(2)
@@ -187,8 +193,8 @@ def main_hangsicherung_vernagelung(st):
     col2.write('maßgebende Schichtdicke ti = {0:.2f} [m]'.format(results_B['ti']))
     col1.write('Grenzwinkel zw. Ein- und Zweikörper-Gleitmechanismus = {0:.2f} [°]'.format(beta_grenz_B))
     col2.write('Maßgebender Winkel = {0:.2f} [°]'.format(results_B['beta_i']))
-    col1.write('L1i = {0:.2f} [kN]'.format(results_B['L1i']))
-    col2.write('L2i = {0:.2f} [kN]'.format(results_B['L2i']))
+    col1.write('L1i = {0:.2f} [m]'.format(results_B['L1i']))
+    col2.write('L2i = {0:.2f} [m]'.format(results_B['L2i']))
     col1.write('Bemessungswert der Gewichtskraft des Bruchkörpers G1di = {0:.2f} [kN]'.format(results_B['G1di']))
     col2.write('Bemessungswert der Gewichtskraft des Bruchkörpers G2di = {0:.2f} [kN]'.format(results_B['G2di']))
     col1.write('Strömungskraft F1si = {0:.2f} [kN]'.format(results_B['F1si']))
@@ -196,6 +202,40 @@ def main_hangsicherung_vernagelung(st):
     col1.write('Größe der Gleitfläche A1i = {0:.2f} [m^2]'.format(results_B['A1i']))
     col2.write('Größe der Gleitfläche A2i = {0:.2f} [m^2]'.format(results_B['A2i']))
     col1.write('Abscherbeanspruchung des Gefelchtes am unteren Krallplattenrand Pd2 = {0:.2f} [kN]'.format(Pd2_max))
+
+    st.markdown('**Ermittlung der Nagelbeanspruchungen**')
+    Vd_max = max(Pd1_max, Pd2_max)
+    lv_erf = Vd_max/(math.pi * dv*0.001 * qs_k/(gamma_st*eta_M))
+    col1, col2 = st.columns(2)
+    col1.write('maximale einwirkende Kraft in Nagelrichtung Ft,d = {0:.2f} [kN]'.format(max(Pd1_max, Pd2_max)))
+    col2.write('maximale einwirkende Kraft senkrecht zur Nagelachse Fv,d = {0:.2f} [kN]'.format(Sd))
+    col1.write('theoretisch erforderliche Länge der wirksamen Verpressstrecke lv,erf. = {0:.2f} [m]'.format(lv_erf))
+    col2.write('Länge des Nagels innerhalb der abrutschenden Schicht lSchicht. = {0:.2f} [m]'.format(t))
+
+    st.markdown('**Ermittlung der Widerstände**')
+    col1, col2 = st.columns(2)
+    Rd = Rk_statik/gamma_M
+    Rqd = Rqk_statik/gamma_M
+    Rtd_lfm = math.pi * dv*0.001 * qs_k/(gamma_st*eta_M)
+    zRdv = zRkv*ah/gamma_R      # über ah
+    zRdh = zRkh*2*av/gamma_R    # über 2av
+    ZRd = ZRk/gamma_R
+    DRd = DRk/gamma_R
+    PRd = PRk/gamma_R
+    col1.write('Innerer Tragwiderstand Nagel auf Zugbeanspruchung Rd,maß. = {0:.2f} [kN]'.format(Rd))
+    col2.write('Innerer Tragwiderstand Nagel auf Schubbeanspruchung Rqd,maß. = {0:.2f} [kN]'.format(Rqd))
+    col1.write('Mantelwiderstand Nagel pro lfm. Verpressstreke Rt,d,lfm. = {0:.2f} [kN/lfm]'.format(Rtd_lfm))
+    col2.write('Mantelwiderstand Nagel bei Länge lNagel - lSchicht = {0:.2f} [kN]'.format(Rtd_lfm*(nagel_l - t)))
+    col1.write('Zugtragfähigkeit Geflecht vertikal über Breite ah: zRdv = {0:.2f} [kN]'.format(zRdv))
+    col2.write('Zugtragfähigkeit Geflecht horizintal über Höhe 2av: zRdh = {0:.2f} [kN]'.format(zRdh))
+    col1.write('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_R = {0:.2f}  [kN]'.format(ZRd))
+    col2.write('Tragwiderstand gegen Durchstanzen in Nagelrichtung D_Rk = {0:.2f} [kN]'.format(DRd))
+    col1.write('Tragwiderstand gegen Abscheren am Krallplattenrand P_Rk = {0:.2f} [kN]'.format(PRd))
+
+    st.header('Nachweise')
+    st.markdown('**Drahtgeflecht**')
+
+    st.markdown('**Nägel**')
 
 
 def get_ah_reduced(ah, zeta, t, delta=45.0):
@@ -205,12 +245,10 @@ def get_ah_reduced(ah, zeta, t, delta=45.0):
     return ah_red
 
 
-def get_parameters_1body(beta, alpha, ah_red, av, wichte, ti):
+def get_parameters_1body(alpha, ah_red, av, wichte, ti):
     """ Gets geometric parameters for 1-body sliding failure
     """
-    beta_rad = beta*math.pi/180
     alpha_rad = alpha*math.pi/180
-    #ti = math.tan(alpha_rad - beta_rad) * 2*av
     Gdi = 2*av*ti/2*ah_red*wichte
     Fsi = 2*av*ti/2*ah_red*10.0*math.sin(alpha_rad)
     Ai = 2*av*ah_red
@@ -218,14 +256,12 @@ def get_parameters_1body(beta, alpha, ah_red, av, wichte, ti):
     return (Gdi, Fsi, Ai)
 
 
-def get_parameters_2body(L1i, L2i, beta, alpha, ah_red, av, wichte, t):
+def get_parameters_2body(L1i, L2i, F1i, F2i, alpha, ah_red, av, wichte, ti):
     """ Gets geometric parameters for 2-body sliding failure
     """
-    beta_rad = beta*math.pi/180
     alpha_rad = alpha*math.pi/180
-    ti = math.tan(alpha_rad - beta_rad) * 2*av
-    G1di = L1i*ti*ah_red*wichte         # rectangle
-    G2di = (2*av - L1i)*ti/2*ah_red*wichte       # triangle
+    G1di = F1i*ah_red*wichte         # rectangle
+    G2di = F2i*ah_red*wichte       # triangle
 
     F1si = L1i*ti*ah_red*10.0*math.sin(alpha_rad)    # rectangle
     F2si = (2*av - L1i)*ti/2*ah_red*10.0*math.sin(alpha_rad)    # triangle
