@@ -13,9 +13,9 @@ st.set_page_config(page_title='Spatial Kriging', layout="wide", page_icon="âš™ï¸
 if __name__ == '__main__':
     st.sidebar.markdown('# Form selection')
     select_options = ['Variogram analysis', 'Spatial Kriging, Elementary test', 'Spatial Kriging, Single layer', 'Spatial Kriging, Multiple layers', 'Test Spatial Kriging',
-                      'Hangsicherung mit Vernagelung']
+                      'Hangsicherung durch Vernagelung']
 
-    index_current = select_options.index('Hangsicherung mit Vernagelung') 
+    index_current = select_options.index('Hangsicherung durch Vernagelung') 
     select_event = st.sidebar.selectbox('Select one of the forms', select_options, index=index_current)
 
     if select_event == 'Variogram analysis':
@@ -33,5 +33,5 @@ if __name__ == '__main__':
     elif select_event == 'Test Spatial Kriging':
         main_spatial_kriging_test(st)
 
-    elif select_event == 'Hangsicherung mit Vernagelung':
+    elif select_event == 'Hangsicherung durch Vernagelung':
         main_hangsicherung_vernagelung(st)

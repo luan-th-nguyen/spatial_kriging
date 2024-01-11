@@ -15,52 +15,62 @@ def main_hangsicherung_vernagelung(st):
 
     st.header('Systemeigenschaften')
     st.markdown('**zum System**')
-    # Geflechttyp
-    # Krallplatte
     col1, col2 = st.columns(2)
     ah = col1.number_input('Horizontaler Abstand ah [m]', value=2.0)
     av = col2.number_input('Abstand in Hangsrichtung av [m]', value=2.0)
-    col1, col2, col3 = st.columns(3)
-    col1.text_input('Nageltyp', value='TITAN 30/11')
-    nagel_psi = col2.number_input('Nagelneigung psi [°]', value=10.0)
-    nagel_l = col3.number_input('Nagellänge (ohne Überstand) l [m]', value=4.5)
-    col1.text_input('Geflechttyp', value='GEOBRUGG Tecco G65/3')
+    nagel_psi = col1.number_input('Nagelneigung psi [°]', value=10.0)
+    nagel_l = col2.number_input('Nagellänge (ohne Überstand) l [m]', value=4.5)
 
     st.markdown('**zum Stahldrahtgeflecht**')
-    col1, col2, col3 = st.columns(3)
-    zRkv = col1.number_input('Zugfestigkeit in Längsrichtung z_Rkv[kN/m]', value=150.0)
-    zRkh = col2.number_input('Zugfestigkeit in Querrichtung z_Rkh [kN/m]', value=50.0)
-    ZRk = col3.number_input('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_R [kN]', value=30.0)
+    col1, col2 = st.columns(2)
+    col1.text_input('Geflechttyp', value='GEOBRUGG Tecco G65/3')
+    zRkv = col2.number_input('Zugfestigkeit in Längsrichtung z_Rkv[kN/m]', value=150.0)
+    zRkh = col1.number_input('Zugfestigkeit in Querrichtung z_Rkh [kN/m]', value=50.0)
+    ZRk = col2.number_input('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_R [kN]', value=30.0)
     DRk = col1.number_input('Tragwiderstand gegen Durchstanzen in Nagelrichtung D_Rk [kN]', value=180.0)
     PRk = col2.number_input('Tragwiderstand gegen Abscheren am Krallplattenrand P_Rk [kN]', value=90.0)
-    Zd = col3.number_input('Nach oben gerichtete, böschungsparallele Kraft im Netz (Standardwert nach Geobrugg) Zd [kN]', value=15.0)
-    V = col1.number_input('Systemvorpannkraft (Standardwert nach Geobrugg) V [kN]', value=30.0)
-    zeta = col2.number_input('Oberer Radius des Druckkegels zeta [m]', value=0.17)
-    delta = col3.number_input('Neigung des Druckkegels delta [°]', value=45.0)
+    Zd = col1.number_input('Nach oben gerichtete, böschungsparallele Kraft im Netz (Standardwert nach Geobrugg) Zd [kN]', value=15.0)
+    V = col2.number_input('Systemvorpannkraft (Standardwert nach Geobrugg) V [kN]', value=30.0)
+    zeta = col1.number_input('Oberer Radius des Druckkegels zeta [m]', value=0.17)
+    delta = col2.number_input('Neigung des Druckkegels delta [°]', value=45.0)
 
     st.markdown('**zu den Nägeln**')
     col1, col2, col3, col4 = st.columns(4)
-    nagel_Da_datenblatt = col1.number_input('Außendurchmesser (inkl. Schraubrippen) DA [mm]', value=29.0)
-    nagel_Di_datenblatt = col2.number_input('Innendurchmesser DI [mm]', value=13.0)
-    nagel_As_datenblatt = col3.number_input('Querschnittsfläche As [mm^2]', value=415.0)
-    nagel_Rk_datenblatt = col4.number_input('Charakteristische Tragfähigkeit Rk [kN]', value=255.0)
-    nagel_delta_t_outside = col1.number_input('Abrostung, außenseitig [mm]', value=4.0)
-    nagel_concrete_cover = col2.number_input('Betondeckung [mm]', value=30.0)
-    dv = 2*nagel_concrete_cover + nagel_Da_datenblatt
-    Da_uncorroded = math.sqrt(nagel_As_datenblatt*4.0/math.pi + nagel_Di_datenblatt**2)
-    fyk = nagel_Rk_datenblatt*1000.0/nagel_As_datenblatt   # N/mm^2
-    Da_corroded = Da_uncorroded - nagel_delta_t_outside
-    As_statik = (Da_corroded**2 - nagel_Di_datenblatt**2)*math.pi/4.0
-    Rk_statik = As_statik * fyk * 0.001 # kN
-    Rqk_statik = As_statik * fyk/math.sqrt(3) * 0.001 # kN
-    col1, col2 = st.columns(2)
-    col1.write('Statisch relevanter Außendurchmesser, unabgerostet Da = {0:.2f} [mm]'.format(Da_uncorroded))
-    col2.write('Charakteristische Festigkeit fy,k = Rk / As = {0:.2f} [N/mm^2]'.format(fyk))
-    col1.write("Statisch relevanter Außendurchmesser, abgerostet Da' = {0:.2f} [mm]".format(Da_corroded))
-    col2.write("Ansetzbare Querschnittsfläche As' = {0:.2f} [mm^2]".format(As_statik))
-    col1.write("Char. Tragfähigkeit unter Abrostung, Zugbeanspruchung R'k  = {0:.2f} [kN]".format(Rk_statik))
-    col2.write("Char. Tragfähigkeit unter Abrostung, Schubbeanspruchung R'q,k   = {0:.2f} [kN]".format(Rqk_statik))
-    col1.write("Durchmesser Verpresskörper (keine Muffung berücksichtigt) dv   = {0:.2f} [kN]".format(dv))
+    #nageltyp = col1.text_input('Nageltyp', value='TITAN 30/11')
+    nageltyp = col1.selectbox('Nageltyp', ['TITAN 30/11', 'GEWI 32'], index=0)
+
+    if nageltyp == 'TITAN 30/11':
+        nagel_Da_datenblatt = col2.number_input('Außendurchmesser (inkl. Schraubrippen) DA [mm]', value=29.0, key='diameter_titan')
+        nagel_Di_datenblatt = col3.number_input('Innendurchmesser DI [mm]', value=13.0)
+        nagel_As_datenblatt = col4.number_input('Querschnittsfläche As [mm^2]', value=415.0)
+        nagel_Rk_datenblatt = col1.number_input('Charakteristische Tragfähigkeit Rk [kN]', value=255.0)
+        nagel_delta_t_outside = col2.number_input('Abrostung, außenseitig [mm]', value=4.0)
+        Da_uncorroded = math.sqrt(nagel_As_datenblatt*4.0/math.pi + nagel_Di_datenblatt**2)
+        fyk = nagel_Rk_datenblatt*1000.0/nagel_As_datenblatt   # N/mm^2
+        Da_corroded = Da_uncorroded - nagel_delta_t_outside
+        As_statik = (Da_corroded**2 - nagel_Di_datenblatt**2)*math.pi/4.0
+        Rk_statik = As_statik * fyk * 0.001 # kN
+        Rqk_statik = As_statik * fyk/math.sqrt(3) * 0.001 # kN
+        col3.write('Statisch relevanter Außendurchmesser, unabgerostet Da = {0:.2f} [mm]'.format(Da_uncorroded))
+        col4.write("Statisch relevanter Außendurchmesser, abgerostet Da' = {0:.2f} [mm]".format(Da_corroded))
+        st.write('Charakteristische Festigkeit fy,k = Rk / As = {0:.2f} [N/mm^2]'.format(fyk))
+        st.write("Char. Tragfähigkeit unter Abrostung, Zugbeanspruchung R'k  = {0:.2f} [kN]".format(Rk_statik))
+        st.write("Char. Tragfähigkeit unter Abrostung, Schubbeanspruchung R'q,k   = {0:.2f} [kN]".format(Rqk_statik))
+
+    elif nageltyp == 'GEWI 32':
+        nagel_Da_datenblatt = col2.number_input('Nenndurchmesser D [mm]', value=32.0, key='diameter_gewi')
+        As_statik = 1/4*math.pi*nagel_Da_datenblatt**2
+        fyd = 230.0 # N/mm^2, Zulassung Z-32.1-2, Kapitel 3.2.2
+        Rd_statik = As_statik * fyd * 0.001 # kN
+        Rqd_statik = As_statik * fyd/math.sqrt(3) * 0.001 # kN
+        st.write('Bemessungswert der Festigkeit (Zulassung Z-32.1-2) fy,d = {0:.2f} [N/mm^2]'.format(fyd))
+        
+
+    col1, col2 = st.columns([1, 3])
+    c_min = col1.number_input('Betondeckung c_min [mm]', value=30.0)
+    dv = nagel_Da_datenblatt + 2*c_min
+    st.write("Ansetzbare Querschnittsfläche As' = {0:.2f} [mm^2]".format(As_statik))
+    st.write("Durchmesser Verpresskörper (keine Muffung berücksichtigt) dv   = {0:.2f} [kN]".format(dv))
 
     st.markdown('**Charakteristische Bodenkennwerte**')
     col1, col2, col3, col4 = st.columns(4)
@@ -204,38 +214,74 @@ def main_hangsicherung_vernagelung(st):
     col1.write('Abscherbeanspruchung des Gefelchtes am unteren Krallplattenrand Pd2 = {0:.2f} [kN]'.format(Pd2_max))
 
     st.markdown('**Ermittlung der Nagelbeanspruchungen**')
-    Vd_max = max(Pd1_max, Pd2_max)
-    lv_erf = Vd_max/(math.pi * dv*0.001 * qs_k/(gamma_st*eta_M))
+    Pd_max = max(Pd1_max, Pd2_max)
+    lv_erf = Pd_max/(math.pi * dv*0.001 * qs_k/(gamma_st*eta_M))
     col1, col2 = st.columns(2)
-    col1.write('maximale einwirkende Kraft in Nagelrichtung Ft,d = {0:.2f} [kN]'.format(max(Pd1_max, Pd2_max)))
+    col1.write('maximale einwirkende Kraft in Nagelrichtung Ft,d = {0:.2f} [kN]'.format(Pd_max))
     col2.write('maximale einwirkende Kraft senkrecht zur Nagelachse Fv,d = {0:.2f} [kN]'.format(Sd))
     col1.write('theoretisch erforderliche Länge der wirksamen Verpressstrecke lv,erf. = {0:.2f} [m]'.format(lv_erf))
     col2.write('Länge des Nagels innerhalb der abrutschenden Schicht lSchicht. = {0:.2f} [m]'.format(t))
 
     st.markdown('**Ermittlung der Widerstände**')
-    col1, col2 = st.columns(2)
-    Rd = Rk_statik/gamma_M
-    Rqd = Rqk_statik/gamma_M
+    if 'TITAN' in nageltyp:
+        Rd = Rk_statik/gamma_M
+        Rqd = Rqk_statik/gamma_M
+    elif 'GEWI' in nageltyp:
+        Rd = Rd_statik
+        Rqd = Rqd_statik
+
     Rtd_lfm = math.pi * dv*0.001 * qs_k/(gamma_st*eta_M)
+    Rtd = Rtd_lfm*(nagel_l - t)
     zRdv = zRkv*ah/gamma_R      # über ah
     zRdh = zRkh*2*av/gamma_R    # über 2av
     ZRd = ZRk/gamma_R
     DRd = DRk/gamma_R
     PRd = PRk/gamma_R
+    col1, col2 = st.columns(2)
     col1.write('Innerer Tragwiderstand Nagel auf Zugbeanspruchung Rd,maß. = {0:.2f} [kN]'.format(Rd))
     col2.write('Innerer Tragwiderstand Nagel auf Schubbeanspruchung Rqd,maß. = {0:.2f} [kN]'.format(Rqd))
     col1.write('Mantelwiderstand Nagel pro lfm. Verpressstreke Rt,d,lfm. = {0:.2f} [kN/lfm]'.format(Rtd_lfm))
-    col2.write('Mantelwiderstand Nagel bei Länge lNagel - lSchicht = {0:.2f} [kN]'.format(Rtd_lfm*(nagel_l - t)))
+    col2.write('Mantelwiderstand Nagel bei Länge lNagel - lSchicht = {0:.2f} [kN]'.format(Rtd))
     col1.write('Zugtragfähigkeit Geflecht vertikal über Breite ah: zRdv = {0:.2f} [kN]'.format(zRdv))
     col2.write('Zugtragfähigkeit Geflecht horizintal über Höhe 2av: zRdh = {0:.2f} [kN]'.format(zRdh))
-    col1.write('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_R = {0:.2f}  [kN]'.format(ZRd))
-    col2.write('Tragwiderstand gegen Durchstanzen in Nagelrichtung D_Rk = {0:.2f} [kN]'.format(DRd))
-    col1.write('Tragwiderstand gegen Abscheren am Krallplattenrand P_Rk = {0:.2f} [kN]'.format(PRd))
+    col1.write('Tragwiderstand auf punktuelle, böschungsparallele Zugbeanspruchung Z_Rd = {0:.2f}  [kN]'.format(ZRd))
+    col2.write('Tragwiderstand gegen Durchstanzen in Nagelrichtung D_Rd = {0:.2f} [kN]'.format(DRd))
+    col1.write('Tragwiderstand gegen Abscheren am Krallplattenrand P_Rd = {0:.2f} [kN]'.format(PRd))
 
     st.header('Nachweise')
     st.markdown('**Drahtgeflecht**')
+    st.write('Durchstanzen des Geflechtes Vdll = {0:.2f} [kN] {1} DR,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Vdll, get_text_comparison(Vdll, DRd), DRd, Vdll/DRd, get_text_NW(Vdll/DRd)))
+    st.write('Abscheren des Geflechtes Pd,max = {0:.2f} [kN] {1} PR,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Pd_max, get_text_comparison(Pd_max, PRd), PRd, Pd_max/PRd, get_text_NW(Pd_max/PRd)))
+    st.write('Punktuelle Krafteinleitung Zd = {0:.2f} [kN] {1} ZR,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Zd, get_text_comparison(Zd, ZRd), ZRd, Zd/ZRd, get_text_NW(Zd/ZRd)))
 
     st.markdown('**Nägel**')
+    st.write('Stahlglied auf Zug Ft,d = {0:.2f} [kN] {1} Rd, mäß. = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Pd_max, get_text_comparison(Pd_max, Rd), Rd, Pd_max/Rd, get_text_NW(Pd_max/Rd)))
+    st.write('Stahlglied auf Schub (Böschungsparalleles Abgleiten) Fv,d = {0:.2f} [kN] {1} Rqd, mäß. = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Sd, get_text_comparison(Sd, Rqd), Rqd, Sd/Rqd, get_text_NW(Sd/Rqd)))
+    mu_combi_Vdll = math.sqrt((Vdll/Rd)**2 + (Sd/Rqd)**2)
+    mu_combi_Pd_max = math.sqrt((Pd_max/Rd)**2 + (Sd/Rqd)**2)
+    st.write('Stahlglied auf komb. Beanspruchung mit Vdll: Ausnutzungsgrad $\mu$ = {0:.2f}, {1}'.format(mu_combi_Vdll, get_text_NW(mu_combi_Vdll)))
+    st.write('Stahlglied auf komb. Beanspruchung mit Pd,max: Ausnutzungsgrad $\mu$ = {0:.2f}, {1}'.format(mu_combi_Pd_max, get_text_NW(mu_combi_Pd_max)))
+    st.write('Mantelwiderstand Ft,d = {0:.2f} [kN] {1} Rt,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Pd_max, get_text_comparison(Pd_max, Rtd), Rtd, Pd_max/Rtd, get_text_NW(Pd_max/Rtd)))
+
+
+def get_text_NW(mu):
+    """ Returns a string for the proof
+    """
+    text = "NW erfüllt"
+    if mu > 1.0:
+        text = "NW nicht erfüllt"
+
+    return text
+
+
+def get_text_comparison(v1, v2):
+    """ Returns a string for the comparison v1 smaller or equal than v2
+    """
+    text = "<="
+    if v1 > v2:
+        text = ">"
+
+    return text
 
 
 def get_ah_reduced(ah, zeta, t, delta=45.0):
