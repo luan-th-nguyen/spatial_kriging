@@ -12,7 +12,7 @@ st.set_page_config(page_title='Spatial Kriging', layout="wide", page_icon="âš™ï¸
 
 if __name__ == '__main__':
     st.sidebar.markdown('# Form selection')
-    select_options = ['Variogram analysis', 'Spatial Kriging, Elementary test', 'Spatial Kriging, Single layer', 'Spatial Kriging, Multiple layers', 'Test Spatial Kriging',
+    select_options = ['Variogram analysis', 'Spatial Kriging, Elementary test', 'Spatial Kriging, Single layer', 'Spatial Kriging, Multiple layers',
                       'Hangsicherung durch Vernagelung']
 
     index_current = select_options.index('Hangsicherung durch Vernagelung') 
@@ -29,9 +29,6 @@ if __name__ == '__main__':
 
     if select_event == 'Spatial Kriging, Multiple layers':
         main_spatial_kriging_multilayers(st)
-
-    elif select_event == 'Test Spatial Kriging':
-        main_spatial_kriging_test(st)
 
     elif select_event == 'Hangsicherung durch Vernagelung':
         main_hangsicherung_vernagelung(st)

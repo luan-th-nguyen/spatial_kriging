@@ -6,7 +6,7 @@ def main_hangsicherung_vernagelung(st):
     st.markdown('**Nachweis der lokalen Standsicherheit nach der Methode RUVOLUM**')
     st.markdown('Cala M, Flum D, Roduner A, Ruegger R, Wartmann ST. Slope Stabilization System and RUVOLUM® dimensioning method. AGH University of Science and Technology, Faculty of Mining and Geoengineering. 2012.')
 
-    st.header('Project information')
+    st.header('Projektsinformationen')
     col1, col2, col3 = st.columns(3)
     col1.text_input('BV', value='Erneuerung Hangsicherung')
     col2.text_input('Strecke', value='DB Strecke 5310')
@@ -36,10 +36,10 @@ def main_hangsicherung_vernagelung(st):
 
     st.markdown('**zu den Nägeln**')
     col1, col2, col3, col4 = st.columns(4)
-    #nageltyp = col1.text_input('Nageltyp', value='TITAN 30/11')
-    nageltyp = col1.selectbox('Nageltyp', ['TITAN 30/11', 'GEWI 32'], index=0)
+    nageltyp = col1.selectbox('Nageltyp', ['TITAN', 'GEWI'], index=0)
 
-    if nageltyp == 'TITAN 30/11':
+    if nageltyp == 'TITAN':
+        st.write('(Vorgestellte Eingangsparameter sind für TITAN 30/11)')
         nagel_Da_datenblatt = col2.number_input('Außendurchmesser (inkl. Schraubrippen) DA [mm]', value=29.0, key='diameter_titan')
         nagel_Di_datenblatt = col3.number_input('Innendurchmesser DI [mm]', value=13.0)
         nagel_As_datenblatt = col4.number_input('Querschnittsfläche As [mm^2]', value=415.0)
@@ -57,7 +57,8 @@ def main_hangsicherung_vernagelung(st):
         st.write("Char. Tragfähigkeit unter Abrostung, Zugbeanspruchung R'k  = {0:.2f} [kN]".format(Rk_statik))
         st.write("Char. Tragfähigkeit unter Abrostung, Schubbeanspruchung R'q,k   = {0:.2f} [kN]".format(Rqk_statik))
 
-    elif nageltyp == 'GEWI 32':
+    elif nageltyp == 'GEWI':
+        st.write('(Vorgestellte Eingangparameter sind für GEWI 32)')
         nagel_Da_datenblatt = col2.number_input('Nenndurchmesser D [mm]', value=32.0, key='diameter_gewi')
         As_statik = 1/4*math.pi*nagel_Da_datenblatt**2
         fyd = 230.0 # N/mm^2, Zulassung Z-32.1-2, Kapitel 3.2.2
@@ -149,15 +150,16 @@ def main_hangsicherung_vernagelung(st):
             results_A['Ai'] = Ai
         ti += delta_t
 
-    col1, col2 = st.columns(2)
-    col1.write('Reduzierte Breite des Bruchkörpers ah_red = {0:.2f} [m]'.format(results_A['ah_red']))
-    col2.write('maßgebende Schichtdicke ti = {0:.2f} [m]'.format(results_A['ti']))
-    col1.write('Grenzwinkel zw. Ein- und Zweikörper-Gleitmechanismus = {0:.2f} [°]'.format(beta_grenz))
-    col2.write('Maßgebender Winkel = {0:.2f} [°]'.format(results_A['beta_i']))
-    col1.write('Bemessungswert der Gewichtskraft des Bruchkörpers Gdi = {0:.2f} [kN]'.format(results_A['Gdi']))
-    col2.write('Strömungskraft Fsi = {0:.2f} [kN]'.format(results_A['Fsi']))
-    col1.write('Größe der Gleitfläche Ai = {0:.2f} [m^2]'.format(results_A['Ai']))
-    col2.write('Abscherbeanspruchung des Gefelchtes am unteren Krallplattenrand Pd1 = {0:.2f} [kN]'.format(Pd1_max))
+    if Pd1 > 0:
+        col1, col2 = st.columns(2)
+        col1.write('Reduzierte Breite des Bruchkörpers ah_red = {0:.2f} [m]'.format(results_A['ah_red']))
+        col2.write('maßgebende Schichtdicke ti = {0:.2f} [m]'.format(results_A['ti']))
+        col1.write('Grenzwinkel zw. Ein- und Zweikörper-Gleitmechanismus beta_grenz = {0:.2f} [°]'.format(beta_grenz))
+        col2.write('Maßgebender Winkel beta_i = {0:.2f} [°]'.format(results_A['beta_i']))
+        col1.write('Bemessungswert der Gewichtskraft des Bruchkörpers Gdi = {0:.2f} [kN]'.format(results_A['Gdi']))
+        col2.write('Strömungskraft Fsi = {0:.2f} [kN]'.format(results_A['Fsi']))
+        col1.write('Größe der Gleitfläche Ai = {0:.2f} [m^2]'.format(results_A['Ai']))
+        col2.write('Abscherbeanspruchung des Gefelchtes am unteren Krallplattenrand Pd1 = {0:.2f} [kN]'.format(Pd1_max))
 
 
     st.markdown('**Fall 2B: Zweikörper-Gleitmechanismus**')
@@ -201,8 +203,8 @@ def main_hangsicherung_vernagelung(st):
     col1, col2 = st.columns(2)
     col1.write('Reduzierte Breite des Bruchkörpers ah_red = {0:.2f} [m]'.format(results_B['ah_red']))
     col2.write('maßgebende Schichtdicke ti = {0:.2f} [m]'.format(results_B['ti']))
-    col1.write('Grenzwinkel zw. Ein- und Zweikörper-Gleitmechanismus = {0:.2f} [°]'.format(beta_grenz_B))
-    col2.write('Maßgebender Winkel = {0:.2f} [°]'.format(results_B['beta_i']))
+    col1.write('Grenzwinkel zw. Ein- und Zweikörper-Gleitmechanismus beta_grenz = {0:.2f} [°]'.format(beta_grenz_B))
+    col2.write('Maßgebender Winkel beta_i = {0:.2f} [°]'.format(results_B['beta_i']))
     col1.write('L1i = {0:.2f} [m]'.format(results_B['L1i']))
     col2.write('L2i = {0:.2f} [m]'.format(results_B['L2i']))
     col1.write('Bemessungswert der Gewichtskraft des Bruchkörpers G1di = {0:.2f} [kN]'.format(results_B['G1di']))
@@ -215,9 +217,10 @@ def main_hangsicherung_vernagelung(st):
 
     st.markdown('**Ermittlung der Nagelbeanspruchungen**')
     Pd_max = max(Pd1_max, Pd2_max)
-    lv_erf = Pd_max/(math.pi * dv*0.001 * qs_k/(gamma_st*eta_M))
+    Ftd = max(Pd_max, Vdll) # maximale Zugkraft in Nagelrichtung
+    lv_erf = Ftd/(math.pi * dv*0.001 * qs_k/(gamma_st*eta_M))
     col1, col2 = st.columns(2)
-    col1.write('maximale einwirkende Kraft in Nagelrichtung Ft,d = {0:.2f} [kN]'.format(Pd_max))
+    col1.write('maximale einwirkende Kraft in Nagelrichtung Ft,d = {0:.2f} [kN]'.format(Ftd))
     col2.write('maximale einwirkende Kraft senkrecht zur Nagelachse Fv,d = {0:.2f} [kN]'.format(Sd))
     col1.write('theoretisch erforderliche Länge der wirksamen Verpressstrecke lv,erf. = {0:.2f} [m]'.format(lv_erf))
     col2.write('Länge des Nagels innerhalb der abrutschenden Schicht lSchicht. = {0:.2f} [m]'.format(t))
@@ -255,13 +258,13 @@ def main_hangsicherung_vernagelung(st):
     st.write('Punktuelle Krafteinleitung Zd = {0:.2f} [kN] {1} ZR,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Zd, get_text_comparison(Zd, ZRd), ZRd, Zd/ZRd, get_text_NW(Zd/ZRd)))
 
     st.markdown('**Nägel**')
-    st.write('Stahlglied auf Zug Ft,d = {0:.2f} [kN] {1} Rd, mäß. = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Pd_max, get_text_comparison(Pd_max, Rd), Rd, Pd_max/Rd, get_text_NW(Pd_max/Rd)))
+    st.write('Stahlglied auf Zug Ft,d = {0:.2f} [kN] {1} Rd, mäß. = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Ftd, get_text_comparison(Ftd, Rd), Rd, Ftd/Rd, get_text_NW(Ftd/Rd)))
     st.write('Stahlglied auf Schub (Böschungsparalleles Abgleiten) Fv,d = {0:.2f} [kN] {1} Rqd, mäß. = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Sd, get_text_comparison(Sd, Rqd), Rqd, Sd/Rqd, get_text_NW(Sd/Rqd)))
     mu_combi_Vdll = math.sqrt((Vdll/Rd)**2 + (Sd/Rqd)**2)
     mu_combi_Pd_max = math.sqrt((Pd_max/Rd)**2 + (Sd/Rqd)**2)
     st.write('Stahlglied auf komb. Beanspruchung mit Vdll: Ausnutzungsgrad $\mu$ = {0:.2f}, {1}'.format(mu_combi_Vdll, get_text_NW(mu_combi_Vdll)))
     st.write('Stahlglied auf komb. Beanspruchung mit Pd,max: Ausnutzungsgrad $\mu$ = {0:.2f}, {1}'.format(mu_combi_Pd_max, get_text_NW(mu_combi_Pd_max)))
-    st.write('Mantelwiderstand Ft,d = {0:.2f} [kN] {1} Rt,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Pd_max, get_text_comparison(Pd_max, Rtd), Rtd, Pd_max/Rtd, get_text_NW(Pd_max/Rtd)))
+    st.write('Mantelwiderstand Ft,d = {0:.2f} [kN] {1} Rt,d = {2:.2f} [kN]: Ausnutzungsgrad $\mu$ = {3:.2f}, {4}'.format(Ftd, get_text_comparison(Ftd, Rtd), Rtd, Ftd/Rtd, get_text_NW(Ftd/Rtd)))
 
 
 def get_text_NW(mu):
