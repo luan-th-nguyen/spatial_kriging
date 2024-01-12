@@ -40,10 +40,10 @@ if __name__ == '__main__':
 
     if user_password == st.secrets["app_password"]:
         continue_main_app(st)
+        st.sidebar.write("Contact: Luan Nguyen (t.nguyen@boleygeotechnik.de)")
 
-    else:
+    elif user_password != '':
         st.sidebar.write('Your entered password is not correct!')
-
-    st.sidebar.write("Contact: Luan Nguyen (t.nguyen@boleygeotechnik.de)")
+        st.sidebar.write("Contact: Luan Nguyen (t.nguyen@boleygeotechnik.de)")
 
 

@@ -7,11 +7,9 @@ def main_hangsicherung_vernagelung(st):
     st.markdown('Cala M, Flum D, Roduner A, Ruegger R, Wartmann ST. Slope Stabilization System and RUVOLUM® dimensioning method. AGH University of Science and Technology, Faculty of Mining and Geoengineering. 2012.')
 
     st.header('Projektsinformationen')
-    col1, col2, col3 = st.columns(3)
-    col1.text_input('BV', value='Erneuerung Hangsicherung')
-    col2.text_input('Strecke', value='DB Strecke 5310')
-    col3.text_input('Bereich', value='Bereich 2: Spritzbetonschale')
-    #col3.text_input('Bereich', value='Bereich 3: natürliche Felsböschung')
+    st.text_input('BV', value='Erneuerung Hangsicherung')
+    st.text_input('Strecke', value='DB Strecke 5310')
+    st.text_input('Bereich', value='Bereich 2: Spritzbetonschale')
 
     st.header('Systemeigenschaften')
     st.markdown('**zum System**')
@@ -93,6 +91,8 @@ def main_hangsicherung_vernagelung(st):
     eta_M = col2.number_input('Modellfaktor für verpresste Mikropfähle (DIN 1054) ηM [-]', value=1.25)
     gamma_R = col3.number_input('Geflecht (EAB Zulassung TECCO) gamma_R [-]', value=1.5)
     gamma_mod = col4.number_input('Korrekturwert der Modellunsicherheit (gem. RUVOLUM) gamma_mod [-]', value=1.1)
+    gamma_dl = col1.number_input('günstiger Einfluss der Systemvorspannkraft (gem. RUVOLUM)  (gem. RUVOLUM) gamma_dl [-]', value=0.8)
+    gamma_dll = col2.number_input('ungünstiger Einfluss der Systemvorspannkraft (gem. DIN 1054)  (gem. RUVOLUM) gamma_dll [-]', value=1.0)
 
     st.markdown('**Bemessungswerte der Bodenkennwerte**')
     phi_d = math.atan(math.tan(phi_k*math.pi/180)/gamma_phi)*180/math.pi    # degree
@@ -111,16 +111,19 @@ def main_hangsicherung_vernagelung(st):
     st.markdown('**Bruchmechanismus 1: Oberflächennahe, böschungsparallele Instabilitäten**')
     image_falure_mode1 = Image.open('./media/nail_local_failure_mode1.PNG')
     st.image(image_falure_mode1)
-    col1, col2, col3, col4 = st.columns(4)
-    Vdl = col1.number_input('Bemessungswert der aufgebrachten Systemvorspannkraft (günstig) Vdl [kN]', value=24.0)
-    Vdll = col2.number_input('Bemessungswert der aufgebrachten Systemvorspannkraft (ungünstig) Vdll [kN]', value=30.0)
+    col1, col2 = st.columns(2)
+    Vdl = V*gamma_dl
+    Vdll = V*gamma_dll
+    col1.write('Bemessungswert der aufgebrachten Systemvorspannkraft (günstig) Vdl = {0:.2f} [kN]'.format(Vdl))
+    col2.write('Bemessungswert der aufgebrachten Systemvorspannkraft (ungünstig) Vdll = {0:.2f} [kN]'.format(Vdll))
+
     Gd = ah*av*t*wichte_prime_d
     Fs = ah*av*t*10.0*math.sin(alpha_k*math.pi/180)
     x = (Gd*math.cos(alpha_k*math.pi/180) + Vdl*math.sin((alpha_k + nagel_psi)*math.pi/180))*math.tan(phi_d*math.pi/180 - ah*av*c_d)/gamma_mod
     Sd = Fs + Gd*math.sin(alpha_k*math.pi/180) - Vdl*math.cos((alpha_k + nagel_psi)*math.pi/180) - x
-    col3.write('Bemessungswert der Gewichtskraft des Bruchkörpers Gd = {0:.2f} [kN]'.format(Gd))
-    col4.write('Strömungskraft Fs = {0:.2f} [kN]'.format(Fs))
-    st.write("Bemessungswert der Schubbeanspruchung des Nagels Sd = {0:.2f} [kN]".format(Sd))
+    col1.write('Bemessungswert der Gewichtskraft des Bruchkörpers Gd = {0:.2f} [kN]'.format(Gd))
+    col2.write('Strömungskraft Fs = {0:.2f} [kN]'.format(Fs))
+    col1.write("Bemessungswert der Schubbeanspruchung des Nagels Sd = {0:.2f} [kN]".format(Sd))
 
     st.markdown('**Bruchmechanismus 2: lokale Instabilitäten zwischen den einzelnen Nägeln**')
     image_falure_mode2 = Image.open('./media/nail_local_failure_mode2.PNG')
