@@ -10,8 +10,8 @@ from main_hangsicherung_vernagelung import main_hangsicherung_vernagelung
 st.set_page_config(page_title='Spatial Kriging', layout="wide", page_icon="⚙️")
 
 
-if __name__ == '__main__':
-    st.sidebar.markdown('# Form selection')
+def continue_main_app(st):
+    st.sidebar.markdown('# App selection')
     select_options = ['Variogram analysis', 'Spatial Kriging, Elementary test', 'Spatial Kriging, Single layer', 'Spatial Kriging, Multiple layers',
                       'Hangsicherung durch Vernagelung']
 
@@ -32,3 +32,18 @@ if __name__ == '__main__':
 
     elif select_event == 'Hangsicherung durch Vernagelung':
         main_hangsicherung_vernagelung(st)
+
+
+if __name__ == '__main__':
+
+    user_password = st.sidebar.text_input('App password', value="", key="password", type="password")
+
+    if user_password == st.secrets["app_password"]:
+        continue_main_app(st)
+
+    else:
+        st.sidebar.write('Your entered password is not correct!')
+
+    st.sidebar.write("Contact: Luan Nguyen (t.nguyen@boleygeotechnik.de)")
+
+
